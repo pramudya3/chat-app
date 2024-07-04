@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Simple Chat App</title>
+</head>
+
+<body>
+    <input id="input" placeholder="Type message" type="text" autofocus>
+    <button onclick="send()">Send</button>
+    <pre id="output"></pre>
+    <script>
+        var input = document.getElementById("input");
+        var output = document.getElementById("output");
+
+        var name = prompt('Enter your name please:') || "No name"
+
+        var socket = new WebSocket("ws://localhost:8080/ws?username=" + name);
+
+        socket.onopen = function () {
+            output.innerHTML += `Status: You are connected\n`;
+        };
+
+        socket.onmessage = function (e) {
+            let res = JSON.parse(e.data)
+            if (res.type === "Register") {
+                output.innerHTML += `${res.sender} has connected\n`
+                return
+            } else if (res.type === "Unregister") {
+                output.innerHTML += `${res.sender} has disconnected\n`
+                return
+            } else if (res.sender !== name) {
+                output.innerHTML += `${res.sender} : ${res.message}\n`;
+            }
+        };
+
+        function send() {
+            var messageRaw = document.querySelector('#input').value
+            socket.send(messageRaw);
+
+            var message = `Me : ${messageRaw}\n`
+            output.innerHTML += message
+
+            input.value = "";
+        }
+    </script>
+</body>
+
+</html>
