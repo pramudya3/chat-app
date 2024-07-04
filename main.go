@@ -13,6 +13,7 @@ func main() {
 
 	handler := ws.NewHandlerWebsocket(manager)
 
+	http.HandleFunc("/", handler.Home)
 	http.HandleFunc("/ws", handler.ServeWebsocket)
 
 	log.Println("server is starting at :8080")
