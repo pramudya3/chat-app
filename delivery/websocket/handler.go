@@ -16,6 +16,15 @@ func NewHandlerWebsocket(manager *domain.Manager) *handlerWebsocket {
 	}
 }
 
+func (h *handlerWebsocket) Home(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" && r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	http.ServeFile(w, r, "template/chat.html")
+}
+
 func (h *handlerWebsocket) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := domain.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -23,10 +32,16 @@ func (h *handlerWebsocket) ServeWebsocket(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	username := r.URL.Query().Get("username")
+	if username == "" {
+		username = "Anonymous"
+	}
+
 	client := &domain.Client{
-		Manager: h.manager,
-		Conn:    conn,
-		Send:    make(chan []byte, 256),
+		Manager:  h.manager,
+		Conn:     conn,
+		Send:     make(chan []byte, 256),
+		Username: username,
 	}
 
 	client.Manager.Register <- client
