@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"encoding/json"
 	"log"
 	"time"
 
@@ -26,6 +27,8 @@ type Client struct {
 	*websocket.Conn
 
 	Send chan []byte
+
+	Username string
 }
 
 func (c *Client) Read() {
@@ -46,7 +49,13 @@ func (c *Client) Read() {
 			break
 		}
 
-		c.Manager.Broadcast <- msg
+		msgByte, err := json.Marshal(&Message{Sender: c.Username, Message: string(msg)})
+		if err != nil {
+			log.Printf("error marshal JSON, %v", err)
+			return
+		}
+
+		c.Manager.Broadcast <- msgByte
 	}
 }
 
